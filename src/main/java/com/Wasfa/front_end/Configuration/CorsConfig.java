@@ -15,6 +15,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // Autoriser les origines
+
         config.addAllowedOrigin("http://localhost:3000"); // Remplacer par l'origine de ton frontend
         config.addAllowedMethod("*"); // Autoriser toutes les méthodes HTTP (GET, POST, etc.)
         config.addAllowedHeader("*"); // Autoriser tous les headers

@@ -203,6 +203,15 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        addJwtToCookie.deleteJwtInCookie(response,"fonction");
+        addJwtToCookie.deleteJwtInCookie(response, "auth_token");
+
+        return ResponseEntity.ok("Déconnexion réussie");
+    }
+
+
 
 
 }

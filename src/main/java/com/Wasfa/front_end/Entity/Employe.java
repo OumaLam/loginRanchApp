@@ -21,9 +21,11 @@ import java.util.List;
 @AllArgsConstructor
 public class Employe implements Serializable, UserDetails {
 
+
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(nullable = false, unique = true)
+    private String cin;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -40,8 +42,6 @@ public class Employe implements Serializable, UserDetails {
     @Column(nullable = false)
     private String fonction; // ADMIN, VETERINAIRE, GESTIONNAIRE, etc.
 
-    @Column(nullable = false, unique = true)
-    private String cin;
 
     @Column(nullable = false)
     private String nom;

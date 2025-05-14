@@ -15,7 +15,7 @@ public class JwtTokenProvider {
     private final String SECRET_KEY = "G8vsFvjSx72AdssZgURfLBRscX0nZZET7E5cLVG7qNE";
 
     // La durée de validité du token en millisecondes (par exemple, 1 heure)
-    private final long VALIDITY = 1000 * 60 * 60;  // 1 heure
+    private final long VALIDITY =  60;  // 1 heure
 
     // Méthode pour générer un JWT à partir de l'email de l'utilisateur
     public String generateToken(String email) {

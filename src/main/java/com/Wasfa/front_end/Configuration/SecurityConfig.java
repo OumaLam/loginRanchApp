@@ -36,11 +36,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())  // Disable CSRF for API with JWT
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless session for API
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/verifier-otp","/api/auth/resend-otp" ,"/api/auth/verifier-otp-reinitialisation","/api/auth/nouveau-mot-de-passe" ,"/api/auth/mot-de-passe-oublie").permitAll()  // Accès libre pour login et OTP
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Accès réservé aux administrateurs
-                .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")  // Accès pour utilisateurs et admins
-                .anyRequest().authenticated()  // Les autres requêtes nécessitent une authentification
-        )
+                        .requestMatchers(
+                                "/api/**"
+
+                        ).permitAll()  // ✅ Ces routes sont publiques
+
+                        .requestMatchers("/api/GESTIONAIRE/**").hasAnyRole("GESTIONAIRE", "ADMIN")
+                        .requestMatchers("/api/VETERINAIRE/**").hasAnyRole("VETERINAIRE", "ADMIN")
+
+                        .requestMatchers("/api/admin").hasRole("ADMIN") // ⚠ Placer APRÈS les autres /api/xxx
+                        .anyRequest().authenticated()
+                )
+
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)  // Add JWT filter before standard authentication
                 .build();

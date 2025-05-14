@@ -20,4 +20,16 @@ public class addJwtToCookie {
         // Ajoute le cookie à la réponse
         response.addCookie(cookie);
     }
+    public static void deleteJwtInCookie(HttpServletResponse response,String name ) {
+        // Supprimer le cookie
+        Cookie authCookie = new Cookie(name, null);
+        authCookie.setHttpOnly(true);
+        authCookie.setSecure(true); // true si HTTPS
+        authCookie.setPath("/");
+        authCookie.setMaxAge(0); // Efface immédiatement
+
+        response.addCookie(authCookie);
+
+    }
+
 }
