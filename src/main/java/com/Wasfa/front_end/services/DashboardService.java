@@ -3,7 +3,8 @@ package com.Wasfa.front_end.services;
 import com.Wasfa.front_end.Dto.DashboardStatsDTO;
 import com.Wasfa.front_end.Dto.StatutDistributionDTO;
 import com.Wasfa.front_end.repository.AnimalRepository;
-import com.Wasfa.front_end.repository.EmployeRepository;
+import com.Wasfa.front_end.repository.EmployeRepositoryRanch;
+import com.Wasfa.front_end.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class DashboardService {
     private AnimalRepository animalRepository;
 
     @Autowired
-    private EmployeRepository employeRepository;
+    private EmployeRepositoryRanch employeRepository;
 
     public DashboardStatsDTO getStats() {
         DashboardStatsDTO stats = new DashboardStatsDTO();

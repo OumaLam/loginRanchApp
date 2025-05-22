@@ -1,7 +1,8 @@
 package com.Wasfa.front_end.services;
 
-import com.Wasfa.front_end.Entity.Employe;
-import com.Wasfa.front_end.repository.EmployeRepository;
+import com.Wasfa.front_end.Entity.Role;
+import com.Wasfa.front_end.repository.EmployeRepositoryRanch;
+import com.Wasfa.front_end.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +12,15 @@ import java.util.Random;
 
 public class serviceMotDePasse {
     @Autowired
-    private EmployeRepository employeRepository;
+    private EmployeRepositoryRanch employeRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+
+    private RoleRepository roleRepository;
 
     public void envoiOtp(String email) {
-        Employe employe = employeRepository.findByEmail(email)
+        Role employe = roleRepository.findRoleByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Employé introuvable"));
 
         String otp = String.format("%06d", new Random().nextInt(999999));
@@ -26,7 +30,7 @@ public class serviceMotDePasse {
         employe.setOtpExpiration(expiration);
         employe.setOtpResendCount(0);
         employe.setLastOtpSentTime(LocalDateTime.now());
-        employeRepository.save(employe);
+        roleRepository.save(employe);
         emailService.envoyerOtp(email, otp);
     }
 

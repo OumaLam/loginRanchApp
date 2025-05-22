@@ -1,7 +1,8 @@
 package com.Wasfa.front_end.Configuration;
 
+import com.Wasfa.front_end.Securite.CryptageAES;
 import com.Wasfa.front_end.Securite.JwtAuthenticationFilter;
-import com.Wasfa.front_end.Securite.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,38 +14,41 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtTokenProvider jwtTokenProvider;
+
     private final AuthenticationProvider authenticationProvider;
 
     // Constructor injection for dependencies
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, JwtTokenProvider jwtTokenProvider, AuthenticationProvider authenticationProvider) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthenticationProvider authenticationProvider) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationProvider = authenticationProvider;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ⬅️ Ajouté ici
                 .csrf(csrf -> csrf.disable())  // Disable CSRF for API with JWT
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless session for API
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/**"
+                                "/api/auth/**","/api/user/me"
 
                         ).permitAll()  // ✅ Ces routes sont publiques
 
-                        .requestMatchers("/api/GESTIONAIRE/**").hasAnyRole("GESTIONAIRE", "ADMIN")
-                        .requestMatchers("/api/VETERINAIRE/**").hasAnyRole("VETERINAIRE", "ADMIN")
 
-                        .requestMatchers("/api/admin").hasRole("ADMIN") // ⚠ Placer APRÈS les autres /api/xxx
+                        .requestMatchers("/api/GESTIONAIRE/**").hasAnyRole("GESTIONAIRE", "ADMIN")
+                        .requestMatchers("/api/dashboard/**","/api/vaccin/**","/api/vaccinations/**","/api/animal/**").hasAnyRole("VETERINAIRE", "ADMIN")
+
+                        .requestMatchers("/api/dashboard/**","/api/vaccin/**","/api/vaccinations/**","/api/animal/**","/api/employes/**").hasRole("ADMIN") // ⚠ Placer APRÈS les autres /api/xxx
                         .anyRequest().authenticated()
                 )
 
@@ -56,5 +60,23 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOriginPattern("http://localhost:3000");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public CryptageAES cryptageAES(@Value("${encryption.secret.key}") String secretKey) {
+        return new CryptageAES(secretKey);
     }
 }

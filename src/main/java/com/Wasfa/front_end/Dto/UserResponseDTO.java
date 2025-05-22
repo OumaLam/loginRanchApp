@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
         private String email;
         private String nom;
         private String prenom;
-        private String fonction;
+        private String role;
 }

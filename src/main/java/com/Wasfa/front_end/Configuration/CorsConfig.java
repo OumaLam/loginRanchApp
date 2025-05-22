@@ -16,7 +16,7 @@ public class CorsConfig {
 
         // Autoriser les origines
 
-        config.addAllowedOrigin("http://localhost:3000"); // Remplacer par l'origine de ton frontend
+        config.addAllowedOriginPattern("http://localhost:3000");
         config.addAllowedMethod("*"); // Autoriser toutes les méthodes HTTP (GET, POST, etc.)
         config.addAllowedHeader("*"); // Autoriser tous les headers
         config.setAllowCredentials(true); // Permet l'inclusion des cookies

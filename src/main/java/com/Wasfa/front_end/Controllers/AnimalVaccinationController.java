@@ -8,6 +8,7 @@ import com.Wasfa.front_end.Entity.Vaccination;
 import com.Wasfa.front_end.repository.AnimalRepository;
 import com.Wasfa.front_end.repository.AnimalVaccinationRepository;
 import com.Wasfa.front_end.repository.VaccinationRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -15,8 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/vaccin")
 @CrossOrigin(origins = "http://localhost:3000")
+@PreAuthorize("hasRole('ADMIN') or hasRole('VETERINAIRE')")
+
 public class AnimalVaccinationController {
 
     private final VaccinationRepository vaccinationRepository;

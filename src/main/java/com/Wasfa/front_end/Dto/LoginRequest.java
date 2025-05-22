@@ -7,6 +7,6 @@ public class LoginRequest {
         private String email;
         private String motDePasse;
         private String deviceId;
-        private String fonction;
+        private String role;
 }
 

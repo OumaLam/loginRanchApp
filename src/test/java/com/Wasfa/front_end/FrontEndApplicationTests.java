@@ -10,6 +10,8 @@ class FrontEndApplicationTests {
 	@Test
 	void contextLoads() {
 
+
+
 //		String secretKey = "0123456789abcdef0123456789abcdef"; // 32 caractères
 //		CryptageAES cryptage = new CryptageAES(secretKey);
 //

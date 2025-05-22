@@ -1,13 +1,15 @@
 package com.Wasfa.front_end.Controllers;
 import com.Wasfa.front_end.Dto.PasswordDto;
+import com.Wasfa.front_end.Entity.EmployeRanch;
+import com.Wasfa.front_end.repository.EmployeRepositoryRanch;
 import com.Wasfa.front_end.services.*;
 import jakarta.servlet.http.HttpServletResponse;
 import com.Wasfa.front_end.Dto.LoginRequest;
 import com.Wasfa.front_end.Dto.LoginResponse;
 import com.Wasfa.front_end.Dto.OtpRequest;
-import com.Wasfa.front_end.Entity.Employe;
+import com.Wasfa.front_end.Entity.Role;
 import com.Wasfa.front_end.Securite.JwtService;
-import com.Wasfa.front_end.repository.EmployeRepository;
+import com.Wasfa.front_end.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +26,9 @@ import java.util.Random;
 public class AuthController {
 
     @Autowired
-    private EmployeRepository employeRepository;
+    private EmployeRepositoryRanch employeRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Autowired
     private EmailService emailService;
@@ -43,13 +47,13 @@ public class AuthController {
     private PasswordEncoder passwordEncoder; // Assure-toi que ce bean est bien défini dans ta config
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
-        Optional<Employe> employeOpt = employeRepository.findByEmail(request.getEmail());
+        Optional<Role> employeOpt = employeRepository.findRoleByEmail(request.getEmail());
 
         if (employeOpt.isEmpty()) {
             return ResponseEntity.status(401).body("Identifiants invalides");
         }
 
-        Employe employe = employeOpt.get();
+        Role employe = employeOpt.get();
 
         // Vérification du mot de passe
         if (!passwordEncoder.matches(request.getMotDePasse(), employe.getMotDePasse())) {
@@ -57,19 +61,22 @@ public class AuthController {
         }
 
         // Vérification de la fonction si précisée
-        if (request.getFonction() != null && !request.getFonction().equals(employe.getFonction())) {
+        if (request.getRole() != null && !request.getRole().equals(employe.getRole())) {
             return ResponseEntity.status(403).body("Fonction invalide");
         } else {
-            addJwtToCookie.addJwtToCookie(response, "fonction", employe.getFonction());
+            addJwtToCookie.addJwtToCookie(response, "fonction", employe.getRole());
         }
-        System.out.println("Fonction envoyée: " + request.getFonction());
-        System.out.println("Fonction en base : " + employe.getFonction());
+        System.out.println("Fonction envoyée: " + request.getRole());
+        System.out.println("Fonction en base : " + employe.getRole());
 
         // Si appareil reconnu => Connexion directe
         if (request.getDeviceId() != null && request.getDeviceId().equals(employe.getDeviceId())) {
             String token = jwtService.generateToken(employe);
+            employe.setToken(token);
+
+            roleRepository.save(employe);
             addJwtToCookie.addJwtToCookie(response, "auth_token", token);
-            return ResponseEntity.ok(new LoginResponse("Connexion sans OTP", employe.getFonction(), token));
+            return ResponseEntity.ok(new LoginResponse("Connexion sans OTP", employe.getRole(), token));
         }
 
         // 💡 Nouvelle logique : OTP avec limitation
@@ -89,25 +96,24 @@ public class AuthController {
         employe.setLastOtpSentTime(now);
         employe.setOtpResendCount(employe.getOtpResendCount() + 1);
         employe.setDeviceId(request.getDeviceId());
-
         String token = jwtService.generateToken(employe);
         employe.setToken(token);
 
-        employeRepository.save(employe);
-        emailService.envoyerOtp(employe.getEmail(), otp);
+        roleRepository.save(employe);
+        emailService.envoyerOtp(employe.getUsername(), otp);
 
-        return ResponseEntity.ok(new LoginResponse("OTP envoyé à l'adresse email.", employe.getFonction()));
+        return ResponseEntity.ok(new LoginResponse("OTP envoyé à l'adresse email.", employe.getRole()));
     }
 
     @PostMapping("/verifier-otp")
     public ResponseEntity<?> verifierOtp(@RequestBody OtpRequest request, HttpServletResponse response) {
-        Optional<Employe> employeOpt = employeRepository.findByEmail(request.getEmail());
+        Optional<Role> employeOpt = employeRepository.findRoleByEmail(request.getEmail());
 
         if (employeOpt.isEmpty()) {
             return ResponseEntity.status(404).body("Utilisateur introuvable");
         }
 
-        Employe employe = employeOpt.get();
+        Role employe = employeOpt.get();
 
         boolean otpValide = employe.getOtp() != null &&
                 employe.getOtp().equals(request.getOtp()) &&
@@ -127,20 +133,20 @@ public class AuthController {
         String token = jwtService.generateToken(employe);
         addJwtToCookie.addJwtToCookie(response, "auth_token", token);
         employe.setToken(token);
-        employeRepository.save(employe);
+        roleRepository.save(employe);
 
-        return ResponseEntity.ok(new LoginResponse("🔐 Authentification réussie !", employe.getFonction(), token));
+        return ResponseEntity.ok(new LoginResponse("🔐 Authentification réussie !", employe.getRole(), token));
     }
 
     @PostMapping("/resend-otp")
     public ResponseEntity<?> resendOtp(@RequestBody OtpRequest request) {
-        Optional<Employe> employeOpt = employeRepository.findByEmail(request.getEmail());
+        Optional<Role> employeOpt = employeRepository.findRoleByEmail(request.getEmail());
 
         if (employeOpt.isEmpty()) {
             return ResponseEntity.status(404).body("Utilisateur introuvable");
         }
 
-        Employe employe = employeOpt.get();
+        Role employe = employeOpt.get();
         LocalDateTime now = LocalDateTime.now();
 
         // Vérifier si la limite de 5 renvois est atteinte
@@ -163,9 +169,9 @@ public class AuthController {
         employe.setOtpExpiration(now.plusMinutes(1));
         employe.setLastOtpSentTime(now);
         employe.setOtpResendCount(employe.getOtpResendCount() + 1);
-        employeRepository.save(employe);
+        roleRepository.save(employe);
 
-        emailService.envoyerOtp(employe.getEmail(), otp);
+        emailService.envoyerOtp(employe.getUsername(), otp);
 
         return ResponseEntity.ok("Nouveau OTP envoyé.");
 

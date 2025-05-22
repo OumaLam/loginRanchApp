@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @Data
 public class LoginResponse {
     private String message;
-    private String fonction;
+    private String role;
     private String token;
 
     public LoginResponse(String message, String fonction) {
         this.message = message;
-        this.fonction = fonction;
+        this.role = fonction;
     }
 
 }
